@@ -16,33 +16,57 @@ export default function Home() {
   const [shows, setShows] = useState([])
   const [sports, setSports] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [feat, trend, mov, sh, sp] = await Promise.all([
-          axios.get('/api/content', { params: { featured: true, limit: 5 } }),
-          axios.get('/api/content', { params: { category: 'trending', limit: 10 } }),
-          axios.get('/api/content', { params: { category: 'popular-movies', limit: 10 } }),
-          axios.get('/api/content', { params: { category: 'must-watch-shows', limit: 10 } }),
-          axios.get('/api/content', { params: { category: 'live-sports', limit: 10 } }),
-        ])
-        setFeatured(feat.data.content)
-        setTrending(trend.data.content)
-        setMovies(mov.data.content)
-        setShows(sh.data.content)
-        setSports(sp.data.content)
-      } finally {
-        setLoading(false)
-      }
+  const loadData = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const [feat, trend, mov, sh, sp] = await Promise.all([
+        axios.get('/api/content', { params: { featured: true, limit: 5 } }),
+        axios.get('/api/content', { params: { category: 'trending', limit: 10 } }),
+        axios.get('/api/content', { params: { category: 'popular-movies', limit: 10 } }),
+        axios.get('/api/content', { params: { category: 'must-watch-shows', limit: 10 } }),
+        axios.get('/api/content', { params: { category: 'live-sports', limit: 10 } }),
+      ])
+      setFeatured(feat.data.content)
+      setTrending(trend.data.content)
+      setMovies(mov.data.content)
+      setShows(sh.data.content)
+      setSports(sp.data.content)
+    } catch (err) {
+      console.error('Failed to load content:', err)
+      setError(err.message || 'Failed to connect to the server')
+    } finally {
+      setLoading(false)
     }
-    load()
-  }, [])
+  }
+
+  useEffect(() => { loadData() }, [])
 
   if (loading) return (
     <div className="loading-screen">
       <div className="loading-logo">Disney+ Hotstar</div>
       <div className="loading-bar"><div className="loading-bar-fill" /></div>
+    </div>
+  )
+
+  if (error) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', textAlign: 'center', padding: '40px' }}>
+      <div style={{ fontSize: '3rem', marginBottom: '16px' }}>😞</div>
+      <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
+        Unable to Load Content
+      </h2>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: '8px', maxWidth: '400px' }}>
+        The backend server may be starting up (Render free tier can take 30-60 seconds on first visit).
+      </p>
+      <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '24px' }}>{error}</p>
+      <button onClick={loadData} style={{
+        padding: '12px 32px', borderRadius: '50px', border: 'none', cursor: 'pointer',
+        background: 'var(--gradient-hero)', color: '#fff', fontWeight: 700, fontSize: '0.95rem'
+      }}>
+        Try Again
+      </button>
     </div>
   )
 
