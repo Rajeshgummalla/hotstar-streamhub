@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://hotstar-clone-backend.onrender.com/api/:path*"
+      "destination": "https://hotstar-streamhub.onrender.com/api/:path*"
     }
   ]
 }
