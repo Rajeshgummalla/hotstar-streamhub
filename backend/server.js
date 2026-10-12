@@ -48,17 +48,26 @@ async function startServer() {
   try {
     let mongoUri = process.env.MONGO_URI;
 
-    // If no real Atlas URI, use in-memory MongoDB for instant demo
-    if (!mongoUri || mongoUri.includes('hotstarDemo')) {
-      console.log('🔧 Starting MongoDB Memory Server for demo...');
+    let connected = false;
+    if (mongoUri && !mongoUri.includes('hotstarDemo')) {
+      try {
+        console.log('🔄 Connecting to MongoDB Atlas...');
+        await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
+        console.log('✅ MongoDB Connected to Atlas');
+        connected = true;
+      } catch (atlasErr) {
+        console.warn('⚠️ Atlas connection failed (' + atlasErr.message + '). Falling back to in-memory MongoDB...');
+      }
+    }
+
+    if (!connected) {
+      console.log('🔧 Starting MongoDB Memory Server...');
       const { MongoMemoryServer } = require('mongodb-memory-server');
       const mongod = await MongoMemoryServer.create();
       mongoUri = mongod.getUri();
-      console.log('✅ In-memory MongoDB started');
+      await mongoose.connect(mongoUri);
+      console.log('✅ In-memory MongoDB connected successfully');
     }
-
-    await mongoose.connect(mongoUri);
-    console.log('✅ MongoDB Connected');
 
     // Auto-seed with demo data
     const Content = require('./models/Content');
