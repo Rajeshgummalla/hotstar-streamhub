@@ -42,12 +42,24 @@ export default function Home() {
     }
   }
 
-  useEffect(() => { loadData() }, [])
+  const [isSlowLoading, setIsSlowLoading] = useState(false)
+
+  useEffect(() => {
+    loadData()
+    const timer = setTimeout(() => setIsSlowLoading(true), 4000)
+    return () => clearTimeout(timer)
+  }, [])
 
   if (loading) return (
     <div className="loading-screen">
       <div className="loading-logo">Disney+ Hotstar</div>
       <div className="loading-bar"><div className="loading-bar-fill" /></div>
+      {isSlowLoading && (
+        <p style={{ marginTop: '20px', color: 'var(--text-secondary)', fontSize: '0.85rem', textAlign: 'center', maxWidth: '320px' }}>
+          Waking up cloud backend...<br />
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Render free instances take ~30-50s to start up after inactivity.</span>
+        </p>
+      )}
     </div>
   )
 
